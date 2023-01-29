@@ -5,10 +5,12 @@ ENV APP_PATH=/app
 WORKDIR ${APP_PATH}
 
 RUN apt-get update && apt-get -y install ffmpeg libsm6 libxext6 && \
-pip install --no-cache-dir --upgrade asyncio aiohttp pyTelegramBotAPI opencv-contrib-python-headless && \
+pip install --no-cache-dir --upgrade asyncio aiohttp aiogram && \
+pip install --no-cache-dir --upgrade flask uvicorn && \
+pip install --no-cache-dir --upgrade  pyTelegramBotAPI opencv-contrib-python-headless && \
 pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu && \
 pip install --no-cache-dir --upgrade basicsr realesrgan
 
 COPY ./src ./
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["uvicorn", "main_flask:app", "--host", "0.0.0.0", "--port", "8080"]
