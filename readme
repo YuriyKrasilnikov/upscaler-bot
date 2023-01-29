@@ -1,0 +1,10 @@
+docker build -t upscaler-bot -f .docker\dockerfile .\ --progress=plain
+
+docker run --rm -it --entrypoint bash upscaler-bot
+
+docker run --rm -it upscaler-bot
+
+docker tag upscaler-bot cr.yandex/crp1pl40hefuu60umfd5/upscaler-bot
+
+docker push cr.yandex/crp1pl40hefuu60umfd5/upscaler-bot
+

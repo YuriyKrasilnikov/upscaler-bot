@@ -1,0 +1,14 @@
+FROM python:3.10.9-slim
+
+ENV APP_PATH=/app
+
+WORKDIR ${APP_PATH}
+
+RUN apt-get update && apt-get -y install ffmpeg libsm6 libxext6 && \
+pip install --no-cache-dir --upgrade asyncio aiohttp pyTelegramBotAPI opencv-contrib-python-headless && \
+pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu && \
+pip install --no-cache-dir --upgrade basicsr realesrgan
+
+COPY ./src ./
+
+ENTRYPOINT ["python", "main.py"]
