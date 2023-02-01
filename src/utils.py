@@ -17,7 +17,8 @@ MODEL_NAME = os.environ.get("MODEL_NAME", "RealESRGAN_x2plus")
 MODEL_PATH = r"weights"
 MODEL_FILE = MODEL_PATH + r"/"+MODEL_NAME+".pth"
 
-API_TOKEN = os.environ["API_TOKEN"]
+#API_TOKEN = os.environ["API_TOKEN"]
+API_TOKEN = "5594705781:AAHD70tON2sgWtd6dqVYttLDtLKlLGD6tDA"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -53,30 +54,23 @@ def get_user_pics(message):
     img, extension = get_img(file_img=file_img)
 
     if img.shape[0] > MAX_SIZE or img.shape[1] > MAX_SIZE:
-      bot.send_message(chat_id=message.chat.id, text=f"Картика размером {img.shape[0]}x{img.shape[1]}. Это больше максимального размера в {MAX_SIZE}, уменьшаю её...")
-      #resize to max 512
-      img = resize_img(img, MAX_SIZE)
-
-    tile, tile_pad, pre_pad = get_tile(img=img, max_size=MAX_SIZE)
+        bot.send_message(chat_id=message.chat.id, text=f"Картика размером {img.shape[0]}x{img.shape[1]}. Это больше максимального размера в {MAX_SIZE}, уменьшаю её...")
+        #resize to max 512
+        img = resize_img(img, MAX_SIZE)
+        tile, tile_pad, pre_pad = get_tile(img=img, max_size=MAX_SIZE)
+    else:
+        tile, tile_pad, pre_pad = 0,0,0
 
     bot.send_message(chat_id=message.chat.id, text=f"Увеличиваю картинку на {SCALE}")
 
-    scaler(message=message, img=img, extension=extension, scale=SCALE, tile=tile, tile_pad=tile_pad, pre_pad=pre_pad)
+    file_output = image_scaller(img=img, extension=extension, scale=SCALE, tile=tile, tile_pad=tile_pad, pre_pad=pre_pad)
 
-
-def scaler(message, img, extension, scale, tile, tile_pad, pre_pad):
-    logging.warning("scaler start")
-    logging.warning("image_scaller start")
-    file_output = image_scaller(img=img, extension=extension, scale=scale, tile=tile, tile_pad=tile_pad, pre_pad=pre_pad)
-    logging.warning("image_scaller end")
-    logging.warning("bot.send_photo start")
     bot.send_photo(chat_id=message.chat.id, photo=file_output)
-    logging.warning("bot.send_photo end")
 
 #get_img
 def get_img(file_img):
     img = cv2.imdecode(
-          np.frombuffer(file_img, np.uint8),
+          np.frombuffer(file_img.getbuffer(), np.uint8),
           cv2.IMREAD_UNCHANGED
       )
       
