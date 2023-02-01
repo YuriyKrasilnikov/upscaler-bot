@@ -17,8 +17,7 @@ MODEL_NAME = os.environ.get("MODEL_NAME", "RealESRGAN_x2plus")
 MODEL_PATH = r"weights"
 MODEL_FILE = MODEL_PATH + r"/"+MODEL_NAME+".pth"
 
-#API_TOKEN = os.environ["API_TOKEN"]
-API_TOKEN = "5594705781:AAHD70tON2sgWtd6dqVYttLDtLKlLGD6tDA"
+API_TOKEN = os.environ["API_TOKEN"]
 
 logging.basicConfig(level=logging.INFO)
 
