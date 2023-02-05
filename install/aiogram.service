@@ -1,0 +1,11 @@
+[Unit]
+Description=Aiogram upscaler bot
+SourcePath=/etc/systemd/system/aiogram
+After = network.target
+
+[Service]
+ExecStart=/etc/systemd/system/aiogram start
+ExecStop=/etc/systemd/system/aiogram stop
+
+[Install]
+WantedBy=multi-user.target
