@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+import asyncio
+
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
@@ -18,8 +20,9 @@ class upscalerBot:
     def __init__(self, token, model_file, upscaled_sizes=(2,7)):
         self.model_file = model_file
 
+        self.loop = asyncio.get_event_loop()
         self.bot = Bot(token=token)
-        self.dp = Dispatcher(self.bot, storage=MemoryStorage())
+        self.dp = Dispatcher(self.bot, storage=MemoryStorage(), loop=self.loop)
 
         self.cldata_get_size = CallbackData('get_size','value')
         self.markup_get_size = self.init_markup_get_size(sizes=upscaled_sizes, callback_data=self.cldata_get_size)
@@ -46,7 +49,7 @@ class upscalerBot:
 
     async def send_welcome(self, message, state: FSMContext):
         logging.warning(f'get message from {message.from_user.first_name}')
-        await message.reply(f"Этот бот увеличивает картинки\nПросто пришлите картинку которую хотите увеличить")
+        await message.reply(f"Этот бот увеличивает картинки\nПросто пришлите картинку, которую хотите увеличить")
         return True
     
     async def get_size(self, query: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -61,7 +64,7 @@ class upscalerBot:
     async def set_upscaler(self, message, state: FSMContext):
         logging.warning(f'get photo {message.from_user.first_name}')
         await state.update_data(msg=message)
-        await message.reply("Выберете на сколько увеличить картинку", reply_markup=self.markup_get_size)
+        await message.reply("Выберите, на сколько увеличить картинку", reply_markup=self.markup_get_size)
         return True
           
     async def upscale_img(self, message, size):
@@ -78,7 +81,16 @@ class upscalerBot:
 
         await self.bot.send_message(chat_id=message.chat.id, text=f"Увеличиваю картинку размером {img.shape[0]} x {img.shape[1]} на {size}")
 
-        file_output = image_scaller(model_path=self.model_file, img=img, extension=extension, scale=size, tile=tile, tile_pad=tile_pad, pre_pad=pre_pad)
+        file_output = await self.loop.run_in_executor(None, lambda: image_scaller(
+              model_path=self.model_file,
+              img=img,
+              extension=extension,
+              scale=size,
+              tile=tile,
+              tile_pad=tile_pad,
+              pre_pad=pre_pad
+            )
+          )
 
         await self.bot.send_document(
           chat_id=message.chat.id,
@@ -87,7 +99,6 @@ class upscalerBot:
           caption=f"Картинка размером {img.shape[0] * size} x {img.shape[1] * size} на {size}"
           )
         return True
-        
 
 bot = upscalerBot(token=API_TOKEN, model_file=MODEL_FILE)
 

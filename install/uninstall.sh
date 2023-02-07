@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 echo "uninstalling aiogram service ..."
-unlink /etc/systemd/system/aiogram
-unlink /etc/systemd/system/aiogram.service
+rm /etc/systemd/system/aiogram
+rm /etc/systemd/system/aiogram.service
 echo "end"
