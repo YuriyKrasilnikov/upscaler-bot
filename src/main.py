@@ -16,6 +16,7 @@ from utils import *
 class upscalerBot:
     class Form(StatesGroup):
         msg=State()
+        query_msg=State()
 
     def __init__(self, token, model_file, upscaled_sizes=(2,7)):
         self.model_file = model_file
@@ -45,10 +46,13 @@ class upscalerBot:
         dispatcher.register_message_handler(callback=self.send_welcome, commands=['start', 'help'])
         dispatcher.register_message_handler(callback=self.send_welcome)
         dispatcher.register_message_handler(callback=self.set_upscaler, content_types=['photo', "document"])
-        dispatcher.register_callback_query_handler(self.get_size, self.cldata_get_size .filter())
+        dispatcher.register_callback_query_handler(self.get_size, self.cldata_get_size.filter())
 
-    async def send_welcome(self, message, state: FSMContext):
+    async def send_welcome(self, message: types.Message, state: FSMContext):
         logging.warning(f'get message from {message.from_user.first_name}')
+
+        await self.cancel_handler(message, state)
+
         await message.reply(f"Этот бот увеличивает картинки\nПросто пришлите картинку, которую хотите увеличить")
         return True
     
@@ -57,17 +61,32 @@ class upscalerBot:
         logging.warning(f'get_size {size}')
         await query.message.delete_reply_markup()
         msg = (await state.get_data())["msg"]
-        await self.upscale_img(message=msg, size=size)
         await state.finish()
+        await self.upscale_img(message=msg, size=size)
         return True
 
-    async def set_upscaler(self, message, state: FSMContext):
-        logging.warning(f'get photo {message.from_user.first_name}')
-        await state.update_data(msg=message)
-        await message.reply("Выберите, на сколько увеличить картинку", reply_markup=self.markup_get_size)
-        return True
-          
-    async def upscale_img(self, message, size):
+    async def set_upscaler(self, message: types.Message, state: FSMContext):
+      logging.warning(f'get photo {message.from_user.first_name}')
+
+      await self.cancel_handler(message, state)
+
+      await state.update_data(msg=message)
+      query_msg = await message.reply("Выберите, на сколько увеличить картинку", reply_markup=self.markup_get_size)
+      await state.update_data(query_msg=query_msg)
+
+      return True
+    
+    async def cancel_handler(self, message: types.Message, state: FSMContext):
+      current_state = await state.get_data()
+      if current_state:
+        logging.info(f'cancelling state')
+        # Cancel state and inform user about it
+        await state.finish()
+        await current_state["query_msg"].delete_reply_markup()
+        await current_state["msg"].reply('Задача отменена')
+
+
+    async def upscale_img(self, message: types.Message, size):
         if message.photo:
           file_info = await self.bot.get_file(message.photo[-1].file_id)
           file_img = await self.bot.download_file(file_info.file_path)
